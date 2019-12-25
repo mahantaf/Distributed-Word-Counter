@@ -11,9 +11,8 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 public class Node extends ComponentDefinition {
-    Positive<EdgePort> recievePort = positive(EdgePort.class);
+    Positive<EdgePort> receivePort = positive(EdgePort.class);
     Negative<EdgePort> sendPort = negative(EdgePort.class);
     Boolean isRoot = false;
     public String nodeName;
@@ -32,8 +31,8 @@ public class Node extends ComponentDefinition {
         this.leaves = initMessage.leaves;
 
         subscribe(startHandler, control);
-        subscribe(mapHandler,recievePort);
-        subscribe(reduceHandler,recievePort);
+        subscribe(mapHandler,receivePort);
+        subscribe(reduceHandler,receivePort);
     }
 
     private int numberOfFileLines(String filePath) throws IOException {
