@@ -2,7 +2,6 @@ package Components;
 
 
 import Events.InitMessage;
-import Events.RoutingMessage;
 import Ports.EdgePort;
 import misc.Edge;
 import se.sics.kompics.Channel;
@@ -26,6 +25,7 @@ public class App extends ComponentDefinition {
     Map<String,Integer> distances = new HashMap<>();
 
     public App(){
+        createOutputFile();
         readTable();
     }
 
@@ -58,17 +58,17 @@ public class App extends ComponentDefinition {
                 if (!distances.containsKey(edge.dst))
                     distances.put(edge.dst, findDistanceToAllNodes(edge.dst, null, 0));
             }
+            ArrayList<String> leaves = findLeaves();
             startNode = findRoot();
             for (Edge edge : edges) {
                 if (!components.containsKey(edge.src)) {
                     Component c = create(Node.class, new InitMessage(edge.src, edge.src.equalsIgnoreCase
-                            (startNode), findNeighbours(edge.src)));
+                            (startNode), findNeighbours(edge.src), leaves));
                     components.put(edge.src, c);
                 }
                 if (!components.containsKey(edge.dst)) {
-                    System.out.println();
                     Component c = create(Node.class, new InitMessage(edge.dst, edge.dst.equalsIgnoreCase
-                            (startNode), findNeighbours(edge.dst)));
+                            (startNode), findNeighbours(edge.dst), leaves));
                     components.put(edge.dst, c);
                 }
                 connect(components.get(edge.src).getPositive(EdgePort.class),
@@ -76,6 +76,17 @@ public class App extends ComponentDefinition {
                 connect(components.get(edge.src).getNegative(EdgePort.class),
                         components.get(edge.dst).getPositive(EdgePort.class), Channel.TWO_WAY);
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public void createOutputFile() {
+        try {
+            File outputFile = new File("src/main/java/output.txt");
+            if (outputFile.exists())
+                outputFile.delete();
+            else
+                outputFile.createNewFile();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -89,6 +100,21 @@ public class App extends ComponentDefinition {
                 root = entry.getKey();
             }
         return root;
+    }
+    private ArrayList<String> findLeaves() {
+        ArrayList<String> leaves = new ArrayList<>();
+        for (Edge e : edges) {
+            String candidateLeaf = e.dst;
+            boolean isLeaf = true;
+            for (Edge f : edges)
+                if (candidateLeaf.equals(f.src)) {
+                    isLeaf = false;
+                    break;
+                }
+            if (isLeaf)
+                leaves.add(candidateLeaf);
+        }
+        return leaves;
     }
     private int findDistanceToAllNodes(String node, String parent, int parentDistance) {
         int distance = 0;
